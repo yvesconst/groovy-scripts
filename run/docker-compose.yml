@@ -1,0 +1,40 @@
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: jenkins_ci
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      # Partage du socket Docker pour permettre à Jenkins de lancer des conteneurs (Molecule)
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=true
+    restart: unless-stopped
+    networks:
+      - jenkins-net
+
+  jenkins-agent:
+    image: jenkins/ssh-agent:latest-jdk17
+    container_name: jenkins-agent
+    restart: unless-stopped
+    privileged: true # Nécessaire si vous voulez faire du Docker-in-Docker avancé
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQ...votre_cle_publique_ici...
+    volumes:
+      # Permet à l'agent de lancer des conteneurs Docker sur l'hôte (Docker out of Docker)
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Optionnel : si l'agent a besoin d'installer le binaire docker, ou utilisez une image custom
+      - /usr/bin/docker:/usr/bin/docker:ro
+    networks:
+      - jenkins-net
+
+volumes:
+  jenkins_home:
+
+networks:
+  jenkins-net:
+    driver: bridge
