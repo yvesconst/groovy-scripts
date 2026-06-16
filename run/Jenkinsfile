@@ -9,13 +9,13 @@ pipeline {
         string(name: 'GIT_BRANCH_REPO', defaultValue: 'https://github.com/yvesconst/groovy-scripts.git', description: 'Url du repository Git')
         string(name: 'GIT_BRANCH_TO_TEST', defaultValue: 'main', description: 'Branche du dépôt de DAGs à valider')
         choice(name: 'TARGET_ENV', choices: ['staging', 'production'], description: 'Environnement cible pour simuler le déploiement')
-        string(name: 'AIRFLOW_VERSION', defaultValue: '2.8.1', description: 'Version de destination d\'Airflow')
+        string(name: 'AIRFLOW_VERSION', defaultValue: '3.1.8', description: 'Version de destination d\'Airflow')
         string(name: 'DAG_PROJECTS_LIST', defaultValue: '', description: 'Liste des projets de dags à déployer')
     }
 
     environment {
         VENV_DIR       = '.venv_ci'
-        REPO_URL       = params.GIT_BRANCH_REPO
+        REPO_URL       = '${params.GIT_BRANCH_REPO}'
         CREDENTIALS_ID = 'jenkins-git-ssh-private-key'
     }
 
