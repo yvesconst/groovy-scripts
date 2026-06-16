@@ -1,0 +1,72 @@
+// 1. Importation obligatoire de la bibliothèque configurée globalement
+// Le caractère "_" en fin de ligne est requis pour importer toutes les fonctions globales.
+@Library('shared-libs') _
+
+pipeline {
+    agent any // S'exécute sur n'importe quel worker disponible disposant de Docker
+
+    parameters {
+        string(name: 'GIT_BRANCH_TO_TEST', defaultValue: 'main', description: 'Branche du dépôt de DAGs à valider')
+        choice(name: 'TARGET_ENV', choices: ['staging', 'production'], description: 'Environnement cible pour simuler le déploiement')
+        string(name: 'AIRFLOW_VERSION', defaultValue: '2.8.1', description: 'Version de destination d\'Airflow')
+    }
+
+    environment {
+        VENV_DIR       = '.venv_ci'
+        REPO_URL       = 'git@github.com:mon-organisation/airflow-ansible-deploy.git'
+        CREDENTIALS_ID = 'jenkins-git-ssh-private-key'
+    }
+
+    stages {
+        stage('📥 Récupération des Sources') {
+            steps {
+                // Appel du module de checkout
+                gitCheckout(
+                    repoUrl: env.REPO_URL,
+                    branch: params.GIT_BRANCH_TO_TEST,
+                    credentialsId: env.CREDENTIALS_ID
+                )
+            }
+        }
+
+        stage('⚙️ Préparation des Paramètres') {
+            steps {
+                script {
+                    def playbookVars = [
+                        target_environment: params.TARGET_ENV,
+                        airflow_version: params.AIRFLOW_VERSION,
+                        triggered_by_jenkins: true,
+                        build_number: env.BUILD_NUMBER
+                    ]
+
+                    formatParamsToYaml(playbookVars, 'molecule/default/group_vars/all.yml')
+                }
+            }
+        }
+
+        stage('🐍 Configuration Environnement Python') {
+            steps {
+                installPythonEnv(
+                    venvName: env.VENV_DIR
+                )
+            }
+        }
+
+        stage('🧪 Exécution du Test de Déploiement & Pytest') {
+            steps {
+                runAnsiblePipeline(
+                    venvName: env.VENV_DIR
+                )
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Fin de la pipeline : Lancement du nettoyage de sécurité...'
+            cleanWorker(
+                venvName: env.VENV_DIR
+            )
+        }
+    }
+}
