@@ -10,7 +10,7 @@ pipeline {
         string(name: 'GIT_BRANCH_TO_TEST', defaultValue: 'main', description: 'Branche du dépôt de DAGs à valider')
         choice(name: 'TARGET_ENV', choices: ['staging', 'production'], description: 'Environnement cible pour simuler le déploiement')
         string(name: 'AIRFLOW_VERSION', defaultValue: '3.1.8', description: 'Version de destination d\'Airflow')
-        string(name: 'DAG_PROJECTS_LIST', defaultValue: '', description: 'Liste des projets de dags à déployer')
+        text(name: 'DAG_PROJECTS_LIST', defaultValue: '', description: 'Liste des projets de dags à déployer')
     }
 
     environment {
