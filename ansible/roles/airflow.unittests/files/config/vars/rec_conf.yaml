@@ -1,0 +1,17 @@
+# Configuration de Développement - Airflow 3
+project_name: airflow_data_pipeline
+environment: dev
+# Paramètres des DAGs
+dag_settings:
+default_owner: 'data_team'
+retries: 2
+retry_delay_seconds: 300
+catchup: false
+# Chemins et ressources
+paths:
+landing_zone: 's3://dev-datalake/landing/'
+archive_zone: 's3://dev-datalake/archive/'
+# Configuration spécifique métier
+business_logic:
+threshold_alert: 100
+api_timeout: 30

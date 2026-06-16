@@ -1,0 +1,108 @@
+---
+- name: Prepare
+  hosts: webserver
+#  become: true
+  gather_facts: false
+
+  vars:
+#    ansible_python_interpreter: /usr/bin/python3
+    remote_test_dir: "/tmp/airflow_tests"
+    airflow:
+      remote_dags_dir: /opt/airflow/dags
+      remote_dir: /opt/airflow
+      venv_path: /app/.venv
+
+  tasks:
+    - name: Migrer la base de données
+      command: airflow db migrate
+      changed_when: false
+#
+#    - name: Vérifier que le DAG est chargé
+#      command: airflow dags list
+#      register: dags
+#      changed_when: false
+#
+#    - name: Vérifier la présence du DAG
+#      assert:
+#        that:
+#          - "'example_dag' in dags.stdout"
+
+    - name: Make sure test directory exist
+      ansible.builtin.file:
+        path: "{{ remote_test_dir }}"
+        state: directory
+        mode: "0744"
+
+    - name: Make sure airflow directory exist
+      ansible.builtin.file:
+        path: "{{ airflow.remote_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Make sure dags directory exist
+      ansible.builtin.file:
+        path: "{{ airflow.remote_dags_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy test dir to the test environment
+      ansible.builtin.copy:
+        src: "{{ molecule_scenario_directory }}/tests"
+        dest: "{{ remote_test_dir }}"
+        mode: "0755"
+        remote_src: false
+
+#    - name: Copy DAGs and  to the test environment
+#      ansible.builtin.copy:
+#        src: "{{ airflow.remote_dags_dir }}"
+#        dest: "{{ remote_test_dir }}"
+#        mode: "0744"
+#        remote_src: true
+
+    - name: Copy DAGs and  to the test environment
+      ansible.builtin.copy:
+        src: "{{ molecule_scenario_directory }}/dags"
+        dest: "{{ remote_test_dir }}"
+        mode: "0755"
+        remote_src: false
+
+    - name: "S'assurer que pytest est installé DANS l'environnement virtuel"
+      ansible.builtin.pip:
+        name:
+          - pytest
+          - apache-airflow
+          - pytest-testinfra
+          - apache-airflow-providers-http
+          - apache-airflow-providers-ssh
+#        virtualenv: "{{ venv_path }}"
+        state: present
+
+    - name: verify tests class
+      stat:
+        path: "{{ remote_test_dir }}/tests/test_airflow.py"
+      register: st_test_path
+
+    - name: debug test path
+      debug:
+        var: st_test_path
+
+    - name: list directory dags
+      ansible.builtin.command:
+        cmd: "ls -al {{ remote_test_dir }}/dags"
+
+    - name: list directory tests
+      ansible.builtin.command:
+        cmd: "ls -al {{ remote_test_dir }}/tests"
+
+    - name: "Exécuter les tests avec le pytest du venv"
+      ansible.builtin.command:
+        cmd: "pytest {{ remote_test_dir }}/tests/"
+      args:
+        chdir: "{{ remote_test_dir }}"
+      environment:
+        AIRFLOW_HOME: "{{ airflow.remote_dir }}"
+      register: pytest_result
+
+    - name: Display Pytest output
+      ansible.builtin.debug:
+        var: pytest_result.stdout_lines

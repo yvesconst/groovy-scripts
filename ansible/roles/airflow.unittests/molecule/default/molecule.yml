@@ -1,0 +1,70 @@
+---
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+platforms:
+
+  - name: postgres-db
+    image: postgres:16
+    pre_build_image: true
+    become: true
+    networks:
+      - name: airflow-network
+    env:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+
+  - name: airflow-scheduler
+    image: yvesconst/airflow-scheduler:1.0.0-molecule
+    pre_build_image: true
+    become: true
+    command: bash -c "sleep 30 && airflow db migrate && airflow scheduler"
+    networks:
+      - name: airflow-network
+    groups:
+      - airflow
+
+  - name: airflow-webserver
+    image: yvesconst/airflow-webserver:1.0.0-molecule
+    pre_build_image: true
+    become: true
+    command: sleep infinity
+    volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    published_ports:
+      - "8085:8080"
+    networks:
+      - name: airflow-network
+    groups:
+      - airflow
+      - webserver
+
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_VERBOSITY: "3" # Équivalent à -vvv (mettez "4" pour -vvvv)
+    options:
+      v: true
+
+verifier:
+  name: ansible
+
+scenario:
+  name: default
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+#    - idempotence
+#    - side_effect
+    - verify
+    - cleanup
+    - destroy

@@ -1,0 +1,91 @@
+---
+# Purpose: assert that the instance really ended up in the expected state.
+# Molecule calls this playbook with `molecule verify`.
+#- name: Verify
+#  hosts: instance
+#  gather_facts: false # Quicker, if you do not need facts
+#  tasks:
+#    - name: Assert something
+#      ansible.builtin.assert:
+#        that: true
+
+- name: Verify Airflow DAGs execution
+  hosts: airflow
+  gather_facts: false
+  vars:
+    remote_test_dir: "/tmp/airflow_tests"
+    venv_path: "/app/.venv"
+
+  tasks:
+    - name: Ensure pip and dependencies are installed on the target
+      ansible.builtin.apt:
+        name:
+          - python3-pip
+          - python3-pytest
+        state: present
+        update_cache: yes
+
+#    - name: Install Apache Airflow (required to parse DAGs)
+#      ansible.builtin.pip:
+#        name: apache-airflow
+#        state: present
+
+    - name: Create remote directory for tests
+      ansible.builtin.file:
+        path: "{{ remote_test_dir }}"
+        state: directory
+
+    - name: Copy DAGs and Tests to the test environment
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "{{ remote_test_dir }}/"
+      with_items:
+        - "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}/files/dags"
+        - "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}/tests"
+
+#    - name: Run Pytest against the DAGs
+#      ansible.builtin.command:
+#        cmd: "pytest -v {{ remote_test_dir }}/tests"
+#      environment:
+#        AIRFLOW_DAG_FOLDER: "{{ remote_test_dir }}/dags"
+#      register: pytest_result
+#      changed_when: false
+#    - name: "Create virtualenv"
+#      ansible.builtin.command:
+#        cmd: "python -m venv .venv"
+#      args:
+#        chdir: "{{ remote_test_dir }}"
+#
+#    - name: "Install deps"
+#      ansible.builtin.command:
+#        cmd: "pip install apache-airflow"
+#      args:
+#        chdir: "{{ remote_test_dir }}"
+#      environment:
+#        VIRTUAL_ENV: "{{ remote_test_dir }}/.venv"
+#
+#    - name: Run Pytest against the DAGs
+#      ansible.builtin.command:
+#        cmd: "pytest -v {{ remote_test_dir }}/tests"
+#      args:
+#        chdir: "{{ remote_test_dir }}"
+#      environment:
+#        VIRTUAL_ENV: "{{ remote_test_dir }}/.venv"
+    - name: "S'assurer que pytest est installé DANS l'environnement virtuel"
+      ansible.builtin.pip:
+        name: pytest
+        virtualenv: "{{ venv_path }}"
+        state: present
+
+    - name: "Exécuter les tests avec le pytest du venv"
+      ansible.builtin.command:
+        cmd: "{{ venv_path }}/bin/pytest {{ remote_test_dir }}/tests"
+      args:
+        chdir: "{{ project_path }}"
+      environment:
+        AIRFLOW_HOME: "{{ airflow_home }}"
+      register: pytest_result
+
+    - name: Display Pytest output
+      ansible.builtin.debug:
+        var: pytest_result.stdout_lines

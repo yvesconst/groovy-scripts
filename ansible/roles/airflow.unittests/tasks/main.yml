@@ -1,0 +1,49 @@
+---
+#- name: Ensure pip and dependencies are installed on the target
+#  ansible.builtin.apt:
+#    name:
+#      - python3-venv
+#      - python3-pytest
+#    state: present
+#    update_cache: yes
+
+- name: Create remote directory for tests
+  ansible.builtin.file:
+    path: "{{ remote_test_dir }}"
+    state: directory
+
+- name: Copy Tests to the test environment
+  ansible.builtin.copy:
+    src: dags/
+    dest: "{{ airflow.remote_dags_dir }}"
+    mode: "0744"
+
+#- name: Ensure virtualenv tool is installed globally
+#  ansible.builtin.pip:
+#    name: virtualenv
+#    state: present
+#    extra_args: --no-cache-dir
+
+
+#- name: "S'assurer que pytest est installé DANS l'environnement virtuel"
+#  ansible.builtin.pip:
+#    name: pytest
+#    state: present
+#    virtualenv_command: /usr/bin/python3 -m venv
+#    extra_args: --no-cache-dir
+#  environment:
+#    PIP_NO_CACHE_DIR: "false"
+#    PIP_PREFER_BINARY: "true"
+
+#- name: "Exécuter les tests avec le pytest du venv"
+#  ansible.builtin.command:
+#    cmd: "pytest {{ remote_test_dir }}/tests"
+##  args:
+##    chdir: "{{ project_path }}"
+##  environment:
+##    AIRFLOW_HOME: "{{ airflow_home }}"
+#  register: pytest_result
+#
+#- name: Display Pytest output
+#  ansible.builtin.debug:
+#    var: pytest_result.stdout_lines

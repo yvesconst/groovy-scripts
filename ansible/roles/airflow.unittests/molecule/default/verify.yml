@@ -1,0 +1,29 @@
+---
+- name: Verify
+  hosts: webserver
+#  become: true
+  gather_facts: false
+
+  vars:
+    remote_test_dir: "/tmp/airflow_tests"
+    airflow:
+      remote_dags_dir: /opt/airflow/dags
+      remote_dir: /opt/airflow
+      venv_path: /app/.venv
+  tasks:
+    - name: Vérifier que le DAG est chargé
+      command: |
+        airflow db migrate
+        airflow dags list
+      register: dags
+      changed_when: false
+      args:
+        chdir: "{{ remote_test_dir }}"
+      environment:
+        AIRFLOW_HOME: "{{ airflow.remote_dir }}"
+
+    - name: Vérifier la présence du DAG
+      assert:
+        that:
+          - "'exemple_ssh_http_airflow3' in dags.stdout"
+

@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: webserver
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /app/.venv/bin/python3.13
+
+  roles:
+    - airflow.unittests

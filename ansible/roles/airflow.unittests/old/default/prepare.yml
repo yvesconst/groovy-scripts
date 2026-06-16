@@ -1,0 +1,21 @@
+---
+- name: Build images
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+
+    - name: Build scheduler image
+      community.docker.docker_image:
+        name: airflow-scheduler
+        source: build
+        build:
+          path: ../../../docker/airflow
+
+    - name: Build webserver image
+      community.docker.docker_image:
+        name: airflow-webserver
+        source: build
+        build:
+          path: ../../../docker/airflow

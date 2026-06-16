@@ -1,0 +1,6 @@
+---
+remote_test_dir: "/tmp/airflow_tests"
+venv_path: "/app/.venv"
+
+airflow:
+  remote_dags_dir: /opt/airflow/dags
