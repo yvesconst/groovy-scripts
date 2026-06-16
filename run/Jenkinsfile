@@ -33,7 +33,7 @@ pipeline {
 
         stage('⚙️ Préparation des Paramètres') {
             steps {
-                dir('ansible/roles/airflow.unittests') {
+                 script {
                     def playbookVars = [
                         target_environment: params.TARGET_ENV,
                         airflow_version: params.AIRFLOW_VERSION,
@@ -42,7 +42,9 @@ pipeline {
                         airflow_dags_installer: params.DAG_PROJECTS_LIST
                     ]
 
-                    formatParamsToYaml(playbookVars, 'molecule/default/group_vars/all.yml')
+                    dir('ansible/roles/airflow.unittests') {
+                        formatParamsToYaml(playbookVars, 'molecule/default/group_vars/all.yml')
+                    }
                 }
             }
         }
