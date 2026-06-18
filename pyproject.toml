@@ -1,0 +1,41 @@
+[project]
+name = "local-dev"
+version = "0.1.0"
+description = "Airflow 8.1.8 sur Python 3.13"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "apache-airflow==3.1.8",
+    "apache-airflow-providers-postgres", # Provider Postgres séparé
+    "psycopg2-binary>=2.9.9",
+    "apache-airflow-providers-http",
+    "apache-airflow-providers-ssh",
+    "apache-airflow-providers-fab",
+    "ansible-core==2.16",
+    "molecule",
+    "molecule-plugins[docker]",
+    "pytest-molecule",
+    "pytest",
+    "pytest-ansible",
+    "pytest-testinfra",
+    "tox",
+    "tox-uv"
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+#[tool.uv.workspace]
+#members = [
+#    "ansible",
+#]

@@ -8,7 +8,10 @@ def call(Map config = [:]) {
         # 1. Installation de 'uv' de manière isolée si non présent sur le worker Jenkins
         if ! command -v uv &> /dev/null; then
             echo "[CI] 'uv' non trouvé. Installation en cours..."
-            apt-get update -y && apt-get install -y --no-install-recommends curl && apt-get clean && rm -rf /var/lib/apt/lists/*
+            apt-get update
+            apt-get install -y --no-install-recommends curl
+            apt-get clean
+            rm -rf /var/lib/apt/lists/*
             curl -LsSf https://astral.sh/uv/install.sh | sh
             # Ajout temporaire au PATH pour la suite du script si installé localement
             export PATH="\$HOME/.local/bin:\$PATH"
