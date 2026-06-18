@@ -3,7 +3,9 @@
 @Library('shared-libs@1.0.6') _
 
 pipeline {
-    agent any // S'exécute sur n'importe quel worker disponible disposant de Docker
+    agent {
+        label 'Built-In Node'
+    }
 
     parameters {
         string(name: 'GIT_REPO', defaultValue: 'https://github.com/yvesconst/groovy-scripts.git', description: 'Url du repository Git')
