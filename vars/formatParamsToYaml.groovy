@@ -1,5 +1,3 @@
-import groovy.yaml.YamlBuilder
-
 def call(Map paramsMap, String targetFilePath = 'vars_feeder.yml') {
     echo "[CI] Formatage des paramètres en YAML..."
 

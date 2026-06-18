@@ -16,7 +16,7 @@ pipeline {
     environment {
         VENV_DIR       = '.venv_ci'
         REPO_URL       = "${params.GIT_REPO}"
-        CREDENTIALS_ID = 'jenkins-git-ssh-private-key'
+        CREDENTIALS_ID = 'github-creds'
     }
 
     stages {

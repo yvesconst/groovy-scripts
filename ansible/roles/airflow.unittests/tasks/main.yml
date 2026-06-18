@@ -18,6 +18,10 @@
     dest: "{{ airflow.remote_dags_dir }}"
     mode: "0744"
 
+- name: "Debug vars from the PIC"
+  debug:
+    var: airflow_version
+
 #- name: Ensure virtualenv tool is installed globally
 #  ansible.builtin.pip:
 #    name: virtualenv

@@ -4,3 +4,5 @@ venv_path: "/app/.venv"
 
 airflow:
   remote_dags_dir: /opt/airflow/dags
+
+airflow_version: "3.0.0"
