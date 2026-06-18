@@ -1,6 +1,6 @@
 // 1. Importation obligatoire de la bibliothèque configurée globalement
 // Le caractère "_" en fin de ligne est requis pour importer toutes les fonctions globales.
-@Library('shared-libs@1.0.3') _
+@Library('shared-libs@1.0.4') _
 
 pipeline {
     agent any // S'exécute sur n'importe quel worker disponible disposant de Docker
